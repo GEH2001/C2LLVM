@@ -8,19 +8,19 @@ int main()
     char str[200];
     printf ("Please type the numbers (separated by a comma):\n");
     scanf ("%s", &str);
-    char seps[] = ",";
-	char* s1 = NULL;
+    char seps[200];
+	seps[0] = ',';
+	char s1[200];
     int n = 0;
 	for (s1 = strtok(str,seps); s1 != NULL; s1 = strtok(NULL,seps))
 	{
-		array[n++] = atoi(s1);
+		n = n + 1;
+		array[n] = atoi(s1);
 	}
-
-	// calculate
 	int i, j, temp;
-	for (i = 1; i < n; i++)
+	for (i = 1; i < n; i = i + 1)
 	{
-		for (j = 0; j < n - i; j++)
+		for (j = 0; j < n - i; j = j + 1)
 		{
 			if (array[j] > array[j + 1])
 			{
@@ -30,10 +30,11 @@ int main()
 			}
 		}
 	}
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i = i + 1) {
         printf("%d", array[i]);
-        if (i < n -1)
+        if (i < n -1){
             printf (",");
+		}
     }
     return 0;
 }
