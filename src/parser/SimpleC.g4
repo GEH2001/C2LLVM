@@ -23,12 +23,16 @@ arrayDeclaration : type id '[' integer ']' ';' ;
 // ----------函数定义----------
 
 functions : function* ;
-function : functype id '(' parameters ')' '{' body '}' ;
+function : functype id '(' parameters ')' '{' funcBody '}' ;
+// function : functype id '(' parameters ')' '{' body '}' ;
 functype : type | 'void' ; 
 
 
 parameters : parameter (',' parameter)* | ;    // `| ` 表示没有参数
 parameter : type id;
+
+// 函数体
+funcBody : body returnBlock ;
 
 // body -> block(语句块) or func(函数调用)
 body : (block | func ';')* ;
@@ -61,7 +65,7 @@ condition : expr ;
 
 expr
     : '(' expr ')'                              #parens
-    | expr op='!' expr                          #Neg
+    | op='!' expr                               #Neg
     | expr op=( '*' | '/' | '%' ) expr          #MulDiv
     | expr op=( '+' | '-' ) expr                #AddSub
     | expr op=( '>=' | '<=' | '>' | '<' ) expr  #Compare
@@ -70,7 +74,7 @@ expr
     | expr op='||' expr                         #Or
     | id                                        #Identifier
     | (op='-')? integer                         #exprint
-    | (op='-')? float                           #exprfloat
+    | (op='-')? double                          #exprdouble
     | char                                      #exprchar
     | bool                                      #exprbool
     | arrayItem                                 #exprarrayitem
@@ -82,7 +86,7 @@ func : standardFunc | userFunc ;
 // 自定义函数
 userFunc : id '(' arguments ')' ;
 arguments : argument (',' argument)* | ;
-argument : id | integer | float | char | bool | string ;
+argument : id | integer | double | char | bool | string ;
 // 标准库函数
 standardFunc : strlenFunc | printfFunc | scanfFunc | atoiFunc | getsFunc ;
 strlenFunc : 'strlen' '(' id ')' ;
@@ -92,14 +96,14 @@ atoiFunc : 'atoi' '(' id ')' ;
 getsFunc : 'gets' '(' id ')' ;
 
 
-type : 'int' | 'bool' | 'float' | 'char' ;
+type : 'int' | 'bool' | 'double' | 'char' ;
 
 lib : Lib ;
 
 id : Identifier ;
 
 integer : Integer ;
-float : Float ;
+double : Double ;
 char : Char ;
 bool : Bool ;
 string : String ;
@@ -119,7 +123,7 @@ Lib : [a-zA-Z]+'.h'? ;
 
 // 整数 浮点数 字符 布尔值 字符串
 Integer : [0-9]+ ;
-Float : [0-9]+'.'[0-9]+ ;
+Double : [0-9]+'.'[0-9]+ ;
 Char : '\'' . '\'' ;
 Bool : 'true' | 'false' ;
 String : '"' .*? '"' ;
