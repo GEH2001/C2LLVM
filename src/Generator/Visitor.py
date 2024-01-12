@@ -6,6 +6,7 @@ from Parser.SimpleCVisitor import SimpleCVisitor
 from Parser.SimpleCLexer import SimpleCLexer
 from Generator.SymbolTable import SymbolTable
 from Generator.ErrorLisenter import SemanticError
+from Generator.ErrorLisenter import SyntaxErrorListener
 
 double = ir.DoubleType()
 int1 = ir.IntType(1)
@@ -881,6 +882,8 @@ def generate(inputfile, outputfile):
     lexer = SimpleCLexer(input)
     stream = CommonTokenStream(lexer)
     parser = SimpleCParser(stream)
+    parser.removeErrorListeners()
+    parser.addErrorListener(SyntaxErrorListener())
     tree = parser.program()
     visitor = Visitor()
     visitor.visit(tree)
