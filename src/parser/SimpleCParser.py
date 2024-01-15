@@ -160,10 +160,10 @@ def serializedATN():
         5,10,0,0,414,71,1,0,0,0,415,416,5,35,0,0,416,417,5,9,0,0,417,418,
         3,80,40,0,418,419,5,10,0,0,419,73,1,0,0,0,420,421,5,36,0,0,421,422,
         5,9,0,0,422,423,3,80,40,0,423,424,5,10,0,0,424,75,1,0,0,0,425,426,
-        7,4,0,0,426,77,1,0,0,0,427,428,5,42,0,0,428,79,1,0,0,0,429,430,5,
-        41,0,0,430,81,1,0,0,0,431,432,5,43,0,0,432,83,1,0,0,0,433,434,5,
-        44,0,0,434,85,1,0,0,0,435,436,5,45,0,0,436,87,1,0,0,0,437,438,5,
-        46,0,0,438,89,1,0,0,0,439,440,5,47,0,0,440,91,1,0,0,0,36,99,110,
+        7,4,0,0,426,77,1,0,0,0,427,428,5,47,0,0,428,79,1,0,0,0,429,430,5,
+        46,0,0,430,81,1,0,0,0,431,432,5,41,0,0,432,83,1,0,0,0,433,434,5,
+        42,0,0,434,85,1,0,0,0,435,436,5,43,0,0,436,87,1,0,0,0,437,438,5,
+        44,0,0,438,89,1,0,0,0,439,440,5,45,0,0,440,91,1,0,0,0,36,99,110,
         115,121,127,131,146,160,167,171,183,185,194,198,213,217,262,271,
         275,284,288,293,308,312,320,340,342,347,359,363,371,378,392,402,
         406,410
@@ -197,8 +197,8 @@ class SimpleCParser ( Parser ):
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "Identifier", "Lib", "Integer", "Double", 
-                      "Char", "Bool", "String", "Whitespace", "Newline", 
+                      "<INVALID>", "Integer", "Double", "Char", "Bool", 
+                      "String", "Identifier", "Lib", "Whitespace", "Newline", 
                       "BlockComment", "LineComment" ]
 
     RULE_program = 0
@@ -300,13 +300,13 @@ class SimpleCParser ( Parser ):
     T__37=38
     T__38=39
     T__39=40
-    Identifier=41
-    Lib=42
-    Integer=43
-    Double=44
-    Char=45
-    Bool=46
-    String=47
+    Integer=41
+    Double=42
+    Char=43
+    Bool=44
+    String=45
+    Identifier=46
+    Lib=47
     Whitespace=48
     Newline=49
     BlockComment=50
@@ -1309,7 +1309,7 @@ class SimpleCParser ( Parser ):
                 self.state = 188
                 self.declaration()
                 pass
-            elif token in [41]:
+            elif token in [46]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 189
                 self.assignBlock()
@@ -1947,7 +1947,7 @@ class SimpleCParser ( Parser ):
             self.state = 275
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [41]:
+            if token in [46]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 264
                 self.id_()
@@ -2035,7 +2035,7 @@ class SimpleCParser ( Parser ):
             self.state = 288
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [41]:
+            if token in [46]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 277
                 self.id_()
@@ -2119,11 +2119,11 @@ class SimpleCParser ( Parser ):
             self.state = 293
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [41]:
+            if token in [46]:
                 self.state = 291
                 self.id_()
                 pass
-            elif token in [43]:
+            elif token in [41]:
                 self.state = 292
                 self.integer()
                 pass
@@ -2927,7 +2927,7 @@ class SimpleCParser ( Parser ):
                 self.state = 345
                 self.standardFunc()
                 pass
-            elif token in [41]:
+            elif token in [46]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 346
                 self.userFunc()
@@ -3045,7 +3045,7 @@ class SimpleCParser ( Parser ):
             self.state = 363
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [41, 43, 44, 45, 46, 47]:
+            if token in [41, 42, 43, 44, 45, 46]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 354
                 self.argument()
@@ -3137,32 +3137,32 @@ class SimpleCParser ( Parser ):
             self.state = 371
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [41]:
+            if token in [46]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 365
                 self.id_()
                 pass
-            elif token in [43]:
+            elif token in [41]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 366
                 self.integer()
                 pass
-            elif token in [44]:
+            elif token in [42]:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 367
                 self.double()
                 pass
-            elif token in [45]:
+            elif token in [43]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 368
                 self.char()
                 pass
-            elif token in [46]:
+            elif token in [44]:
                 self.enterOuterAlt(localctx, 5)
                 self.state = 369
                 self.bool_()
                 pass
-            elif token in [47]:
+            elif token in [45]:
                 self.enterOuterAlt(localctx, 6)
                 self.state = 370
                 self.string()

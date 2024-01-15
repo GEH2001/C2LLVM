@@ -113,6 +113,12 @@ string : String ;
 // -------------------------- 词法 -------------------------
 // 库文件名
 
+// 整数 浮点数 字符 布尔值 字符串
+Integer : [0-9]+ ;
+Double : [0-9]+'.'[0-9]+ ;
+Char : '\'' . '\'' ;
+Bool : 'true' | 'false' ;
+String : '"' .*? '"' ;
 
 // 变量名
 Identifier : [a-zA-Z_][0-9A-Za-z_]* ;
@@ -120,13 +126,6 @@ Identifier : [a-zA-Z_][0-9A-Za-z_]* ;
 // Lib 必须在 Identifier 之后，因为 Lib 也是 Identifier 的一种，
 // 如果放在 Identifier 之前，会优先匹配 Lib，导致 Identifier 无法匹配
 Lib : [a-zA-Z]+'.h'? ;
-
-// 整数 浮点数 字符 布尔值 字符串
-Integer : [0-9]+ ;
-Double : [0-9]+'.'[0-9]+ ;
-Char : '\'' . '\'' ;
-Bool : 'true' | 'false' ;
-String : '"' .*? '"' ;
 
 // --skip--
 Whitespace
