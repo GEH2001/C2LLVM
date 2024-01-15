@@ -1,9 +1,9 @@
 from antlr4 import *
 from llvmlite import ir
-from Parser.SimpleCParser import SimpleCParser
+from parser.SimpleCParser import SimpleCParser
 
-from Parser.SimpleCVisitor import SimpleCVisitor
-from Parser.SimpleCLexer import SimpleCLexer
+from parser.SimpleCVisitor import SimpleCVisitor
+from parser.SimpleCLexer import SimpleCLexer
 from Generator.SymbolTable import SymbolTable
 from Generator.ErrorLisenter import SemanticError
 from Generator.ErrorLisenter import SyntaxErrorListener
@@ -459,6 +459,69 @@ class Visitor(SimpleCVisitor):
         
         self.SymbolTable.ExitScope()
 
+    def visitForBlock(self, ctx:SimpleCParser.ForBlockContext):
+        """
+        forBlock : 'for' '(' forInit ';' condition ';' forUpdate ')' ('{' body '}' | ';') ;
+        """
+        self.SymbolTable.EnterScope()
+
+        builder = self.Builders[-1]
+        self.visit(ctx.getChild(2)) # visit forInit
+        # conditionBlock
+        conditionBlock = builder.append_basic_block()
+        builder.branch(conditionBlock)
+        self.Blocks.append(conditionBlock)
+        self.Builders.append(ir.IRBuilder(conditionBlock))
+        conditionBuilder = self.Builders[-1]
+        cond = self.visit(ctx.getChild(4))  # visit condition
+        # trueBlock -> body
+        trueBlock = builder.append_basic_block()
+        self.Blocks.append(trueBlock)
+        self.Builders.append(ir.IRBuilder(trueBlock))
+        self.visit(ctx.getChild(9)) # visit body
+        self.visit(ctx.getChild(6)) # visit forUpdate
+        self.Builders[-1].branch(conditionBlock)    # 回到 while 入口
+        # falseBlock
+        falseBlock = builder.append_basic_block()
+        # 注意conditionBuilder 是 conditionBlock 的 builder
+        conditionBuilder.cbranch(cond['name'], trueBlock, falseBlock)
+        self.Blocks.append(falseBlock)
+        self.Builders.append(ir.IRBuilder(falseBlock))
+        
+        self.SymbolTable.ExitScope()
+
+
+    def visitForInit(self, ctx:SimpleCParser.ForInitContext):
+        """
+        forInit : id '=' expr (',' forInit)* | ;
+        """
+        builder = self.Builders[-1]
+        lval = self.visit(ctx.getChild(0))  # 左值
+        rval = self.visit(ctx.getChild(2))  # 右值
+        if lval['type'] != rval['type']:
+            # 强制类型转换
+            rval = self.assignConvert(lval['type'], rval, ctx)
+        builder.store(rval['name'], lval['name'])
+        for i in range(4, ctx.getChildCount(), 2):
+            self.visit(ctx.getChild(i))
+        return
+
+
+    def visitForUpdate(self, ctx:SimpleCParser.ForUpdateContext):
+        """
+        forUpdate : id '=' expr (',' forUpdate)* | ;
+        """
+        builder = self.Builders[-1]
+        lval = self.visit(ctx.getChild(0))  # 左值
+        rval = self.visit(ctx.getChild(2))  # 右值
+        if lval['type'] != rval['type']:
+            # 强制类型转换
+            rval = self.assignConvert(lval['type'], rval, ctx)
+        builder.store(rval['name'], lval['name'])
+        for i in range(4, ctx.getChildCount(), 2):
+            self.visit(ctx.getChild(i))
+        return
+
     def visitId(self, ctx: SimpleCParser.IdContext):
         """
         id : Identifier ;
@@ -511,6 +574,22 @@ class Visitor(SimpleCVisitor):
         double : Double ;
         """
         return {"type": double, "name": ir.Constant(double, float(ctx.getText()))}
+    
+    def visitChar(self, ctx:SimpleCParser.CharContext):
+        """
+        char : Char ;
+        """
+        chr = ctx.getText()[1:-1]
+        return {"type": int8, "name": ir.Constant(int8, ord(chr))}
+    
+    def visitBool(self, ctx:SimpleCParser.BoolContext):
+        """
+        bool : Bool ;
+        """
+        if ctx.getText()=="true":
+            return {"type": int1, "name": ir.Constant(int1, True)}
+        elif ctx.getText()=="false":
+            return {"type": int1, "name": ir.Constant(int1, False)}
     
     def visitType(self, ctx: SimpleCParser.TypeContext):
         """
@@ -816,7 +895,7 @@ class Visitor(SimpleCVisitor):
         standardFunc : strlenFunc | printfFunc | scanfFunc | atoiFunc | getsFunc ;
         """
         return self.visit(ctx.getChild(0))
-    
+
     def visitPrintfFunc(self, ctx:SimpleCParser.PrintfFuncContext):
         """
         printfFunc : 'printf' '(' string (',' expr)* ')' ;
