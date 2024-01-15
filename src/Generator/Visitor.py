@@ -926,6 +926,30 @@ class Visitor(SimpleCVisitor):
                 args.append(val['name'])
             retname = builder.call(printf, args)
         return {"type": int32, "name": retname}
+    
+    def visitScanfFunc(self, ctx:SimpleCParser.ScanfFuncContext):
+        """
+        scanfFunc : 'scanf' '(' string (',' '&'? (id | arrayItem) )* ')' ;
+        """
+        scanf = None
+        if 'scanf' in self.Funs:
+            scanf = self.Funs['scanf']
+        else:
+            scanfType = ir.FunctionType(int32, [ir.PointerType(int8)], var_arg=True)
+            scanf = ir.Function(self.Module, scanfType, name="scanf")
+            self.Funs['scanf'] = scanf
+            
+        builder = self.Builders[-1]
+        retname = None
+
+        strval = self.visit(ctx.getChild(2))
+        strptr = builder.gep(strval['name'], [ir.Constant(int32, 0), ir.Constant(int32, 0)])
+        args = [strptr]
+        for i in range(5, ctx.getChildCount() - 1, 3):
+            val = self.visit(ctx.getChild(i))
+            args.append(val['name'])
+        retname = builder.call(scanf, args)
+        return {"type": int32, "name": retname}
 
     def visitString(self, ctx:SimpleCParser.StringContext):
         """
