@@ -168,16 +168,21 @@ Builder用来生成IR，Values是LLVM IR中用到的所有类（Function、Block
 
 ## TODO
 
-forBlock
+- [x] forBlock
 
-expr : char
+- [x] expr : char
 
-expr : string
+- [x] expr : string
 
-自定义函数调用: userFunc
+- [x] 自定义函数调用: userFunc
 
-标准库函数调用: strlenFunc, scanfFunc, atoiFunc, getsFunc
 
-char : Char ;
+标准库函数调用
+- [x] strlenFunc
+- [ ] scanfFunc
+- [ ] atoiFunc
+- [ ] getsFunc
 
-bool : Bool ;
+- [x] char : Char ;
+
+- [x] bool : Bool ;

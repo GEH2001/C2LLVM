@@ -529,7 +529,7 @@ class Visitor(SimpleCVisitor):
         右值: a = id
         id 可能作为左值或右值, 这里只返回id在符号表中的信息 (左值形式 id 的指针)
         调用者需要根据上下文判断是左值还是右值, 如果是右值, 需要调用 load() 加载
-        TODO: 参数 load 用于判断是左值还是右值
+        TODO: 参数 load 用于判断是左值还是右值, 感觉还是调用者来判断是否load() 加载比较好
         """
         id = ctx.getText()
         symbol = self.SymbolTable.GetItem(id)
@@ -900,6 +900,12 @@ class Visitor(SimpleCVisitor):
         expr : char         #exprchar
         """
         return self.visit(ctx.getChild(0))
+    
+    def visitExprbool(self, ctx:SimpleCParser.ExprboolContext):
+        """
+        expr : bool        #exprbool
+        """
+        return self.visit(ctx.getChild(0))
 
     def visitExprarrayitem(self, ctx:SimpleCParser.ExprarrayitemContext):
         """
@@ -910,6 +916,12 @@ class Visitor(SimpleCVisitor):
         builder = self.Builders[-1]
         newt = builder.load(val['name'])
         return {"type": val['type'], "name": newt}
+    
+    def visitExprstring(self, ctx:SimpleCParser.ExprstringContext):
+        """
+        expr : string   #exprstring
+        """
+        return self.visit(ctx.getChild(0))
     
     def visitExprfunction(self, ctx:SimpleCParser.ExprfunctionContext):
         """
@@ -923,6 +935,52 @@ class Visitor(SimpleCVisitor):
         """
         return self.visit(ctx.getChild(0))
     
+    def visitUserFunc(self, ctx:SimpleCParser.UserFuncContext):
+        """
+        userFunc : id '(' arguments ')' ;
+        """
+        funname = ctx.getChild(0).getText()
+        if funname in self.Funs:
+            builder = self.Builders[-1]
+            func = self.Funs[funname]
+            args = self.visit(ctx.getChild(2))  # 返回的args是一个列表[{"type": int8, "name": "a"}]
+            if len(args) != len(func.args):
+                raise SemanticError("调用函数参数数量不匹配", ctx)
+            # 根据函数定义, 进行传入参数的强制类型转换
+            for i in range(len(args)):
+                args[i] = self.assignConvert(func.args[i].type, args[i], ctx)
+            args = [arg['name'] for arg in args]    # 只需要变量名
+            retname = builder.call(func, args)
+            return {"type": func.function_type.return_type, "name" : retname}
+        else:
+            raise SemanticError("未知函数", ctx)
+
+    def visitArguments(self, ctx:SimpleCParser.ArgumentsContext):
+        """
+        arguments : argument (',' argument)* | ;
+        """
+        args = []
+        for i in range(0, ctx.getChildCount(), 2):
+            arg = self.visit(ctx.getChild(i))
+            args.append(arg)
+        return args
+    
+    def visitArgument(self, ctx:SimpleCParser.ArgumentContext):
+        """
+        argument : id | integer | double | char | bool | string ;
+        visitId返回的应该是符号表中存的数组信息, 即左值(指针), 需要在此返回右值
+        TODO: 如果参数是数组, 怎么处理---, 
+        """
+        child = ctx.getChild(0)
+        builder = self.Builders[-1]
+        # 判断孩子节点是否是id
+        if isinstance(child, SimpleCParser.IdContext):
+            symbol = self.visit(child)
+            newt = builder.load(symbol['name'])
+            return {"type": symbol['type'], "name": newt}
+        else:
+            return self.visit(child)
+
     def visitStandardFunc(self, ctx:SimpleCParser.StandardFuncContext):
         """
         standardFunc : strlenFunc | printfFunc | scanfFunc | atoiFunc | getsFunc ;
