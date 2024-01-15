@@ -1001,8 +1001,42 @@ class Visitor(SimpleCVisitor):
         ptr = builder.gep(symbol['name'], [ir.Constant(int32, 0), ir.Constant(int32, 0)])
         retname = builder.call(strlen, [ptr])
         return {'type' : int32, "name": retname}
-
-
+    
+    def visitAtoiFunc(self, ctx:SimpleCParser.AtoiFuncContext):
+        """
+        atoiFunc : 'atoi' '(' id ')' ;
+        """
+        atoi = None
+        if 'atoi' in self.Funs:
+            atoi = self.Funs['atoi']
+        else:
+            atoiType = ir.FunctionType(int32, [ir.PointerType(int8)], var_arg=False)
+            atoi = ir.Function(self.Module, atoiType, name="atoi")
+            self.Funs['atoi'] = atoi
+        
+        builder = self.Builders[-1]
+        symbol = self.visit(ctx.getChild(2))
+        ptr = builder.gep(symbol['name'], [ir.Constant(int32, 0), ir.Constant(int32, 0)])
+        retname = builder.call(atoi, [ptr])
+        return {'type' : int32, "name": retname}
+    
+    def visitGetsFunc(self, ctx:SimpleCParser.GetsFuncContext):
+        """
+        getsFunc : 'gets' '(' id ')' ;
+        """
+        gets = None
+        if 'gets' in self.Funs:
+            gets = self.Funs['gets']
+        else:
+            getsType = ir.FunctionType(int32, [ir.PointerType(int8)], var_arg=False)
+            gets = ir.Function(self.Module, getsType, name="gets")
+            self.Funs['gets'] = gets
+        
+        builder = self.Builders[-1]
+        symbol = self.visit(ctx.getChild(2))
+        ptr = builder.gep(symbol['name'], [ir.Constant(int32, 0), ir.Constant(int32, 0)])
+        retname = builder.call(gets, [ptr])
+        return {'type' : int32, "name": retname}
         
 def generate(inputfile, outputfile):
     """
