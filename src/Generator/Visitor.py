@@ -591,6 +591,33 @@ class Visitor(SimpleCVisitor):
         elif ctx.getText()=="false":
             return {"type": int1, "name": ir.Constant(int1, False)}
     
+    def visitString(self, ctx:SimpleCParser.StringContext):
+        """
+        string : String ;
+        常量字符串, 如 "hello"
+        返回数组类型 ir.ArrayType(int8, length)
+        而不是指针 ir.PointerType(int8) 
+        如 {"type": ir.ArrayType(int8, length), "name": ".str.1"}
+        """
+        if(self.Constants == 0):
+            name = ".str"
+        else:
+            name = ".str." + str(self.Constants)
+        self.Constants += 1
+
+        string = ctx.getText().replace('\\n', '\n')  # 替换为转义符
+        string = string[1:-1]   # 去除双引号
+        string += '\0'      # 添加字符串结束符
+        length = len(bytearray(string, 'utf8'))
+
+        retname = ir.GlobalVariable(self.Module, ir.ArrayType(int8, length), name)
+        # string.linkage = "internal"
+        retname.global_constant = True
+        retname.initializer = ir.Constant(ir.ArrayType(int8, length), bytearray(string, 'utf8'))
+        # return {"type": ir.PointerType(int8), "name": retname}
+        return {"type": ir.ArrayType(int8, length), "name": retname}
+    
+
     def visitType(self, ctx: SimpleCParser.TypeContext):
         """
         type : 'int' | 'bool' | 'double' | 'char' ;
@@ -867,7 +894,13 @@ class Visitor(SimpleCVisitor):
             builder = self.Builders[-1]
             newt = builder.fneg(val['name'])
             return {"type": val['type'], "name": newt}
-        
+    
+    def visitExprchar(self, ctx:SimpleCParser.ExprcharContext):
+        """
+        expr : char         #exprchar
+        """
+        return self.visit(ctx.getChild(0))
+
     def visitExprarrayitem(self, ctx:SimpleCParser.ExprarrayitemContext):
         """
         expr : arrayItem ;  # exprarrayitem
@@ -927,31 +960,25 @@ class Visitor(SimpleCVisitor):
             retname = builder.call(printf, args)
         return {"type": int32, "name": retname}
 
-    def visitString(self, ctx:SimpleCParser.StringContext):
+    def visitStrlenFunc(self, ctx:SimpleCParser.StrlenFuncContext):
         """
-        string : String ;
-        常量字符串, 如 "hello"
-        返回数组类型 ir.ArrayType(int8, length)
-        而不是指针 ir.PointerType(int8) 
-        如 {"type": ir.ArrayType(int8, length), "name": ".str.1"}
+        strlenFunc : 'strlen' '(' id ')' ;
         """
-        if(self.Constants == 0):
-            name = ".str"
+        strlen = None
+        if 'strlen' in self.Funs:
+            strlen = self.Funs['strlen']
         else:
-            name = ".str." + str(self.Constants)
-        self.Constants += 1
+            strlenType = ir.FunctionType(int32, [ir.PointerType(int8)], var_arg=False)
+            strlen = ir.Function(self.Module, strlenType, name="strlen")
+            self.Funs['strlen'] = strlen
+        
+        builder = self.Builders[-1]
+        symbol = self.visit(ctx.getChild(2))
+        ptr = builder.gep(symbol['name'], [ir.Constant(int32, 0), ir.Constant(int32, 0)])
+        retname = builder.call(strlen, [ptr])
+        return {'type' : int32, "name": retname}
 
-        string = ctx.getText().replace('\\n', '\n')  # 替换为转义符
-        string = string[1:-1]   # 去除双引号
-        string += '\0'      # 添加字符串结束符
-        length = len(bytearray(string, 'utf8'))
 
-        retname = ir.GlobalVariable(self.Module, ir.ArrayType(int8, length), name)
-        # string.linkage = "internal"
-        retname.global_constant = True
-        retname.initializer = ir.Constant(ir.ArrayType(int8, length), bytearray(string, 'utf8'))
-        # return {"type": ir.PointerType(int8), "name": retname}
-        return {"type": ir.ArrayType(int8, length), "name": retname}
         
 def generate(inputfile, outputfile):
     """
