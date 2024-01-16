@@ -9,7 +9,10 @@ int main()
     printf ("Please type the numbers (separated by a comma):\n");
     scanf ("%s", &str);
 	int p, q, r, n, len;
-	p = q = r = n = 0;
+	p = 0;
+	q = 0;
+	r = 0;
+	n = 0;
 	len = strlen(str);
 	char buf[20];
     while (p < len) {
@@ -20,24 +23,23 @@ int main()
 				r = r + 1;
 				q = q + 1;
 			}
+			buf[r] = '\0';
 			array[n] = atoi (buf);
 			n = n + 1;
 			p = p + 1;
 			q = p;
-			for (r = 0; r < 20; r++)
-				buf[r] = '\0';
 		}
 		else if (p == len - 1) {
 			r = 0;
 			while (q <= p) {
 				buf[r] = str[q];
 				r = r + 1;
+				q = q + 1;
 			}
+			buf[r] = '\0';
 			array[n] = atoi (buf);
 			n = n + 1;
 			p = p + 1;
-			for (r = 0; r < 20; r++)
-				buf[r] = '\0';
 		}
 		else {
 			p = p + 1;
@@ -62,5 +64,6 @@ int main()
             printf (",");
 		}
     }
+	printf ("\n");
     return 0;
 }
