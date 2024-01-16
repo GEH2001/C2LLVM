@@ -1,6 +1,3 @@
-// 函数调用测例
-// 函数参数不能是数组, 只能是普通变量
-
 #include<stdio.h>
 #include<string.h>
 
