@@ -7,17 +7,18 @@ int main()
     char s[80];
     printf("Please type a string:\n");
     scanf("%s", &s);
+    int flag = 1;
     for(i=0,j=strlen(s)-1;i<j;i=i+1,j=j-1)
     {
         if(s[i]!=s[j]){
-            i=j;
+            flag = 0;
         }
     }
-    if(i<j){
-        printf("False\n",s);
+    if(flag){
+        printf("True\n",s);
     }
     else{
-        printf("True\n",s);
+        printf("False\n",s);
     }
     return 0;
 }

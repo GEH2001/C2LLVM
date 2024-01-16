@@ -8,14 +8,40 @@ int main()
     char str[200];
     printf ("Please type the numbers (separated by a comma):\n");
     scanf ("%s", &str);
-    char seps[200];
-	seps[0] = ',';
-	char s1[200];
-    int n = 0;
-	for (s1 = strtok(str,seps); s1 != NULL; s1 = strtok(NULL,seps))
-	{
-		n = n + 1;
-		array[n] = atoi(s1);
+	int p, q, r, n, len;
+	p = q = r = n = 0;
+	len = strlen(str);
+	char buf[20];
+    while (p < len) {
+		if (str[p] == ',') {
+			r = 0;
+			while (q < p) {
+				buf[r] = str[q];
+				r = r + 1;
+				q = q + 1;
+			}
+			array[n] = atoi (buf);
+			n = n + 1;
+			p = p + 1;
+			q = p;
+			for (r = 0; r < 20; r++)
+				buf[r] = '\0';
+		}
+		else if (p == len - 1) {
+			r = 0;
+			while (q <= p) {
+				buf[r] = str[q];
+				r = r + 1;
+			}
+			array[n] = atoi (buf);
+			n = n + 1;
+			p = p + 1;
+			for (r = 0; r < 20; r++)
+				buf[r] = '\0';
+		}
+		else {
+			p = p + 1;
+		}
 	}
 	int i, j, temp;
 	for (i = 1; i < n; i = i + 1)
