@@ -1,188 +1,126 @@
-# C to LLVM IR Compiler
+# C2LLVM
+
+## 项目简介
+
+A simple compiler: from C to LLVM IR.
 
 ## 项目结构
+
 ```
 C2LLVM
+├─ .gitignore
 ├─ README.md
 ├─ doc
-│    └─ report.md
+│    ├─ report.md		# 报告文档
+│    └─ report.pdf
 ├─ exe
+│    └─ readme.txt		# 程序执行方式
 └─ src
-       ├─ .antlr
-       ├─ parser    # 语法分析
-       │    ├─ .antlr
-       │    └─ SimpleC.g4
-       └─ test      # 测试文件
-              └─ example.c
+       ├─ Generator	# 中间代码生成器
+       │    ├─ ErrorLisenter.py	# 语义错误监听
+       │    ├─ SymbolTable.py	# 符号表定义
+       │    └─ Visitor.py	# 语义分析，继承自SimpleCVisitor
+       ├─ main.py
+       ├─ parser	# 除g4文件外，该目录下其他文件均由antlr4自动生成
+       │    ├─ SimpleC.g4	# 语法规则文件
+       │    ├─ SimpleC.interp
+       │    ├─ SimpleC.tokens
+       │    ├─ SimpleCLexer.interp
+       │    ├─ SimpleCLexer.py
+       │    ├─ SimpleCLexer.tokens
+       │    ├─ SimpleCListener.py
+       │    ├─ SimpleCParser.py
+       │    └─ SimpleCVisitor.py
+       └─ test	# 测例
+            ├─ palindrome.c		# 检测回文
+            ├─ palindrome.ll
+            ├─ sort.c			# 排序
+            ├─ sort.ll
+            ├─ userfunc.c		# 用于展示对自定义函数的支持
+            └─ userfunc.ll
 ```
-
-## 语法支持
-
-- 示例代码见`src/test/example.c`
-- 源代码必须按照 **头文件->变量声明->函数定义** 的顺序组织
-- 数据类型 void int double bool char
-- if
-- while
-- for
-- 一维数组
-- 单行注释
-- 块注释
-- 标准库函数`gets strlen printf scanf atoi`
-
-## 不支持
-- 结构体
-- 单目运算符`++`和`--`
-- 不支持中文注释
-- break
-- continue
 
 ## 环境配置
 
-参考[antlr4/doc/getting-started.md](https://github.com/antlr/antlr4/blob/master/doc/getting-started.md)
+- 系统：Ubuntu 22.04.3 LTS
 
-- 安装Python 3.11.7
+- 语言：Python 3.11.7
 
-- 安装antlr
+- 安装antlr4，antlr4-python3-runtime，llvmlite
 
   ```bash
+  # 1.安装altlr4
   $ pip install antlr-tools
-  $ antlr4
-  ANTLR tool needs Java to run; install Java JRE 11 yes/no (default yes)? yes
-  Installed Java in C:\Users\geh20\.jre\jdk-11.0.21+9-jre; remove that dir to uninstall
-  ANTLR Parser Generator  Version 4.13.1
+  $ antlr4	# 执行此命令会自动检查并安装antlr4运行所需要的Java环境
   ...
-  ```
-
-- 安装Antlr Python3 runtime
-
-  ```bash
-  $ pip install antlr4-python3-runtime==4.13.1
-  ```
-
-- 安装llvmlite
-
-  ```bash
+  # 2.安装antlr4-python3-runtime
+  $ pip antlr4-python3-runtime
+  # 3.安装llvmlite
   $ pip install llvmlite
   ```
 
-## Usage
+- 安装clang/llvm
 
-进入src目录
+  ```bash
+  $ sudo apt-get install llvm
+  $ sudo apt-get install clang
+  ```
 
-```bash
-$ pwd
-~/src
-$ python main.py hello.c	# 生成hello.ll
-$ lli hello.ll	# 执行中间代码
-```
-[!note] 测试时, 请在自己的本地仓库src目录下新建C文件, 命名最好是`hello.c`, 因为我已经在gitignore中设置忽略hello.c和hello.ll, 这样可以保证自己在本地的测试内容不会被提交到GitHub (冗余提交)
+## 使用说明
 
-## Antlr4命令
+以下命令均运行在`src`目录下
 
-语法分析树（文本形式）
+- 生成某个源代码的IR
 
-```bash
-$ antlr4-parse Expr.g4 prog -tree
-10+20*30
-^Z				# end of input, use ^D in unix
-```
+  ```bash
+  $ pwd
+  ~/C2LLVM/src
+  $ python main.py test/xxx.c		# 在xxx.c同级目录下生成xxx.ll
+  ```
 
-打印token流
+- 执行IR
 
-```bash
-$ antlr4-parse Expr.g4 prog -tokens -trace
-10+20*30
-^Z
-```
+  ```bash
+  $ lli xxx.ll
+  ```
 
-语法分析树（直观图）
+测例使用方法：
 
-```bash
-$ antlr4-parse Expr.g4 prog -gui
-10+20*30
-^Z
-```
+* palindrome.c 用于检测输入的字符串是否为回文，输出 `True` 或 `False`
+* sort.c 用于排序，输入是用英文逗号分隔的若干个整数，将它们按照从小到大的顺序排序后重新输出。例如：输入 `5,8,4,9`，输出 `4,5,8,9`
+* userfunc.c 用于展示对自定义函数的支持，用户无须输入，输出是 `2 3 4 5 6 7 8 9 10 11`
 
-生成语法分析代码
+## 参考资料
 
-```bash
-$ antlr4 -visitor -Dlanguage=Python3 Expr.g4
-```
+- [User guide — llvmlite documentation (pydata.org)](https://llvmlite.pydata.org/en/latest/user-guide/index.html)
 
-## Clang/LLVM
+  llvmlite文档，通过它查询LLVM接口的使用方式
 
-Clang只在unix上支持的比较好，windows上不太行（而且缺少很多工具比如lli）
+- [LLVM 相关内容 · GitBook (buaa-se-compiling.github.io)](https://buaa-se-compiling.github.io/miniSysY-tutorial/pre/llvm.html)
 
-1. 安装
+  miniSysY编译实验，介绍了LLVM工具链、LLVM IR，对本项目很有帮助
 
-[LLVM 工具链下载 · GitBook (buaa-se-compiling.github.io)](https://buaa-se-compiling.github.io/miniSysY-tutorial/pre/llvm_download.html)
+- [antlr4/doc at dev · antlr/antlr4 (github.com)](https://github.com/antlr/antlr4/tree/dev/doc)
 
-```bash
-$ sudo apt-get install llvm
-$ sudo apt-get install clang
-```
+  antlr4官方文档，get-started.md 有如何配置antlr4环境，python-target.md 有如何生成python代码的语法分析工具
 
-测试安装是否成功
+- [SerCharles/CToLLVMCompiler: A compiler (github.com)](https://github.com/SerCharles/CToLLVMCompiler)
 
-```bash
-$ clang -v # 查看版本，若出现版本信息则说明安装成功
-$ lli --version # 查看版本，若出现版本信息则说明安装成功
-```
+  一个学长实现的代码，我主要参考了这个
 
-2. 命令行
+- [Getting Started with LLVM Core Libraries（中文版）](https://getting-started-with-llvm-core-libraries-zh-cn.readthedocs.io/zh-cn/latest/index.html)
 
-[LLVM 工具链介绍 · GitBook (buaa-se-compiling.github.io)](https://buaa-se-compiling.github.io/miniSysY-tutorial/pre/llvm_tool_chain.html)
+  LLVM核心库介绍，本次项目没怎么参考，但是对深入理解LLVM有用处
 
-```bash
-# 1. 生成 main.c 对应的 .ll 格式的文件
-$ clang -S  -emit-llvm main.c -o main.ll -O0
+- [The LLVM Compiler Infrastructure Project](https://llvm.org/)
 
-# 2. 用 lli 解释执行生成的 .ll 文件
-$ lli main.ll
-```
+  LLVM官网，没参考
 
-## IR
+- [TinyCompiler: c compiler based on flex(lex), bison(yacc) and LLVM](https://github.com/stardust95/TinyCompiler)
 
-[LLVM IR 快速上手 · GitBook (buaa-se-compiling.github.io)](https://buaa-se-compiling.github.io/miniSysY-tutorial/pre/llvm_ir_quick_primer.html)
+  比较好的一个简易C编译器，但是词法分析和语法分析基于flex和bison，而本项目使用的是antlr4，所以没怎么参考
 
-阅读上述内容，理解IR的变量、结构
+- [flosacca/c-compiler: Compile C to LLVM with Python. (github.com)](https://github.com/flosacca/c-compiler/tree/master)
 
-## llvmlite
+  也是GitHub上找到的一个貌似学长的作业，但是它的语法规则是直接从antlr4官网复制来的，我觉得太冗余了，所以也没参考
 
-llvmlite是一个python包，用于辅助生成LLVM IR
-
-按照我的理解，LLVM提供了完整的库用于辅助生成IR，详细可查看[Getting Started with LLVM Core Libraries（中文版）](https://getting-started-with-llvm-core-libraries-zh-cn.readthedocs.io/zh-cn/latest/index.html)【第5章LLVM中间表示】
-
-llvmlite应该是将其封装为python接口，方便python调用
-
-llvmlite文档: [User guide — llvmlite documentation (pydata.org)](https://llvmlite.pydata.org/en/latest/user-guide/index.html)
-
-阅读 IR Layer 内容，理解Types、Values、Modules、IR Builders
-
-Builder用来生成IR，Values是LLVM IR中用到的所有类（Function、Block）
-
-
-
-## Done
-符号表, 自定义函数, 变量声明, 赋值语句, ret语句, if语句, while语句, expr表达式求值, 标准库函数printf
-
-## TODO
-
-- [x] forBlock
-
-- [x] expr : char
-
-- [x] expr : string
-
-- [x] 自定义函数调用: userFunc
-
-
-标准库函数调用
-- [x] strlenFunc
-- [ ] scanfFunc
-- [ ] atoiFunc
-- [ ] getsFunc
-
-- [x] char : Char ;
-
-- [x] bool : Bool ;
