@@ -580,6 +580,8 @@ class Visitor(SimpleCVisitor):
         char : Char ;
         """
         chr = ctx.getText()[1:-1]
+        if chr == "\\0":
+            chr = '\0'
         return {"type": int8, "name": ir.Constant(int8, ord(chr))}
     
     def visitBool(self, ctx:SimpleCParser.BoolContext):

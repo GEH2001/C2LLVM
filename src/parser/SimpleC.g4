@@ -116,7 +116,7 @@ string : String ;
 // 整数 浮点数 字符 布尔值 字符串
 Integer : [0-9]+ ;
 Double : [0-9]+'.'[0-9]+ ;
-Char : '\'' . '\'' ;
+Char : '\'' . '\'' | '\'\\' '0' '\'';
 Bool : 'true' | 'false' ;
 String : '"' .*? '"' ;
 
